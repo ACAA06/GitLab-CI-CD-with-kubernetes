@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telebot
+  labels:
+    app: telebot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telebot
+  template:
+    metadata:
+      labels:
+        app: telebot
+    spec:
+      containers:
+        - name: poetu-bot
+          image: clemadr/telegram-poetu-bot:latest
+          imagePullPolicy: Always

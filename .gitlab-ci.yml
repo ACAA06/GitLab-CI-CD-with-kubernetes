@@ -1,0 +1,32 @@
+stages:
+  - publish
+  - deploy
+
+variables:
+  TAG_LATEST: clemadr/telegram-poetu-bot:latest
+  TAG_COMMIT: clemadr/telegram-poetu-bot:latest
+  DOCKER_PASS: $pwd
+  DOCKER_USER: $username
+
+publish:
+  image: docker:latest
+  stage: publish
+  services:
+    - docker:18.09.7-dind
+  script:
+    - docker build -t $TAG_LATEST .
+    - echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin 
+    - docker push $TAG_COMMIT
+
+deploy:
+  stage: deploy
+  image: claranet/gcloud-kubectl-docker:latest
+  script:
+    - echo "$SERVICE_ACCOUNT_KEY" > key.json
+    - cat key.json
+    - gcloud auth activate-service-account --key-file=key.json
+    - gcloud config set project vb-test-304305
+    - gcloud config set container/cluster cicd
+    - gcloud config set compute/zone us-central1-a
+    - gcloud container clusters get-credentials cicd --zone us-central1-a
+    - kubectl apply -f kubectl-deployment.yaml
